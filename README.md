@@ -2,9 +2,9 @@
   <img src="./.github/assets/livekit-mark.png" alt="LiveKit logo" width="100" height="100">
 </a>
 
-# LiveKit Agents Starter - Python
+# LiveKit RAG Voice Agent Demo
 
-A complete starter project for building voice AI apps with [LiveKit Agents for Python](https://github.com/livekit/agents) and [LiveKit Cloud](https://cloud.livekit.io/).
+A RAG-powered voice AI assistant built with [LiveKit Agents for Python](https://github.com/livekit/agents) and [LiveKit Cloud](https://cloud.livekit.io/).
 
 The starter project includes:
 
@@ -52,15 +52,17 @@ The project includes a complete [AGENTS.md](AGENTS.md) file for these assistants
 Clone the repository and install dependencies to a virtual environment:
 
 ```console
-cd agent-starter-python
+cd livekit-rag-voice-agent-demo
 uv sync
 ```
 
-Sign up for [LiveKit Cloud](https://cloud.livekit.io/) then set up the environment by copying `.env.example` to `.env.local` and filling in the required keys:
+Sign up for [LiveKit Cloud](https://cloud.livekit.io/) then set up the environment by copying `env.example` to `.env.local` and filling in the required keys:
 
 - `LIVEKIT_URL`
 - `LIVEKIT_API_KEY`
 - `LIVEKIT_API_SECRET`
+
+This project also supports additional optional configuration (RAG, booking flow, model providers). See `env.example` for the full list.
 
 You can load the LiveKit environment automatically using the [LiveKit CLI](https://docs.livekit.io/home/cli/cli-setup):
 
@@ -111,13 +113,18 @@ Get started quickly with our pre-built frontend starter apps, or add telephony s
 
 For advanced customization, see the [complete frontend guide](https://docs.livekit.io/agents/start/frontend/).
 
-## Tests and evals
+## Tests
 
-This project includes a complete suite of evals, based on the LiveKit Agents [testing & evaluation framework](https://docs.livekit.io/agents/build/testing/). To run them, use `pytest`.
+This repository intentionally does not ship with a test suite.
 
-```console
-uv run pytest
-```
+## Publishing checklist (recommended)
+
+Before pushing this project to a public repository:
+
+- **Remove secrets from the repo**: API keys, JWTs, service-account JSON files, etc.
+- **Use env vars for all credentials**: copy `env.example` → `.env.local` and keep `.env.local` untracked.
+- **Rotate any keys that were ever committed**: even if deleted, treat them as compromised.
+- **Keep tests safe by default**: integration tests should be opt-in (network + credentials required).
 
 ## Using this template repo for your own project
 

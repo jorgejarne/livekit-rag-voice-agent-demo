@@ -1,4 +1,45 @@
 .env
+.env.local
+.env.*.local
+
+# Allow committing example env files
+!.env.example
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyd
+*.so
+*.egg-info/
+dist/
+build/
+
+# Virtual envs
+.venv/
+venv/
+
+# Tooling caches
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.coverage
+
+# IDEs
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Local logs / artifacts
+KMS/logs/
+
+# NEVER commit cloud credentials / service accounts
+**/*service-account*.json
+**/*gcp*.json
+src/keen-autumn-*.json
+.env
 .env.*
 !.env.example
 .DS_Store
