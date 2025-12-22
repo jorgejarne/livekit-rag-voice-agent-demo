@@ -1,5 +1,6 @@
-from livekit.rtc import MediaDevices
 import pprint
+
+from livekit.rtc import MediaDevices
 
 devices = MediaDevices()
 

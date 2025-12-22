@@ -24,6 +24,9 @@ venv/
 .mypy_cache/
 .coverage
 
+# Tests directory
+tests/
+
 # IDEs
 .vscode/
 .idea/

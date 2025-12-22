@@ -1,5 +1,7 @@
 import logging
 import os
+from pathlib import Path
+
 import requests
 import yaml
 from dotenv import load_dotenv
@@ -10,9 +12,9 @@ from livekit.agents import (
     AgentSession,
     JobContext,
     JobProcess,
-    function_tool,
     RunContext,
     cli,
+    function_tool,
     inference,
     room_io,
 )
@@ -22,21 +24,14 @@ from llama_index.core import (
     StorageContext,
     VectorStoreIndex,
 )
-from llama_index.vector_stores.qdrant import QdrantVectorStore
-from llama_index.llms.google_genai import GoogleGenAI
 from llama_index.core.settings import Settings
-from qdrant_client import QdrantClient
 from llama_index.embeddings.vertex import VertexTextEmbedding
-from pathlib import Path
-
-
-
-
-
+from llama_index.llms.google_genai import GoogleGenAI
+from llama_index.vector_stores.qdrant import QdrantVectorStore
+from qdrant_client import QdrantClient
 
 logger = logging.getLogger("agent")
 load_dotenv(".env.local")
-
 
 
 def _load_rag_index() -> VectorStoreIndex:
@@ -51,8 +46,6 @@ def _load_rag_index() -> VectorStoreIndex:
     project_id = os.getenv("GOOGLE_VERTEX_PROJECT_ID")
     location_id = os.getenv("GOOGLE_VERTEX_LOCATION")
     token_endpoint = os.getenv("GOOGLE_VERTEX_TOKEN_ENDPOINT")
-
-
 
     qdrant_url = os.getenv("QDRANT_URL")
     qdrant_api_key = os.getenv("QDRANT_API_KEY")
@@ -88,7 +81,6 @@ def _load_rag_index() -> VectorStoreIndex:
         private_key=private_key,
     )
 
-    google_token = os.getenv("GOOGLE_API_KEY")
     Settings.llm = GoogleGenAI(model="gemini-2.5-flash")
 
     client = QdrantClient(url=qdrant_url, api_key=qdrant_api_key)
@@ -101,6 +93,7 @@ def _load_rag_index() -> VectorStoreIndex:
     )
     return index
 
+
 class Assistant(Agent):
     def __init__(self, rag_index: VectorStoreIndex) -> None:
         instructions = self.load_prompt(
@@ -112,7 +105,7 @@ class Assistant(Agent):
         self.rag_query_engine = rag_index.as_query_engine()
 
     def load_prompt(self, path: Path) -> str:
-        with open(path, "r", encoding="utf-8") as f:
+        with open(path, encoding="utf-8") as f:
             prompt_yaml = yaml.safe_load(f)
 
         # For now, we simply stringify the YAML into a structured instruction block
@@ -121,60 +114,55 @@ class Assistant(Agent):
 
     def render_prompt(self, data: dict) -> str:
         return f"""
-        You are {data['agent_identity']['name']}.
+        You are {data["agent_identity"]["name"]}.
 
         Purpose:
-        {data['agent_identity']['purpose']}
+        {data["agent_identity"]["purpose"]}
 
         Interaction Mode:
-        {data['interaction_mode']['type']}
+        {data["interaction_mode"]["type"]}
 
         Voice Rules:
-        {', '.join(data['interaction_mode']['rules'])}
+        {", ".join(data["interaction_mode"]["rules"])}
 
         Tone:
-        {data['persona']['tone']}
+        {data["persona"]["tone"]}
 
         Formatting Rules:
-        {', '.join(data['formatting_rules'])}
+        {", ".join(data["formatting_rules"])}
 
         RAG Rules:
-        {', '.join(data['rag_usage_rules'])}
+        {", ".join(data["rag_usage_rules"])}
 
         Priority Rules:
-        {', '.join(data['priority_rules'])}
+        {", ".join(data["priority_rules"])}
 
         Booking Trigger Examples:
-        {', '.join(data['booking_intent']['triggers'])}
+        {", ".join(data["booking_intent"]["triggers"])}
 
         Data to Collect:
-        {', '.join(data['data_to_collect'])}
+        {", ".join(data["data_to_collect"])}
 
         Conversation Order:
-        {', '.join(data['conversation_flow']['order'])}
+        {", ".join(data["conversation_flow"]["order"])}
 
-                 
         Email Rules:
-        - Always ask for the email 
+        - Always ask for the email
         - Confirmation required
-        - Max spelling attempts: {data['email_validation']['max_spelling_attempts']}
+        - Max spelling attempts: {data["email_validation"]["max_spelling_attempts"]}
         - Must contain @ and .
 
-
         Fallback URL:
-        {list(data['email_confirmation_flow']['steps'][-1].values())[0]['url']}
-        
+        {next(iter(data["email_confirmation_flow"]["steps"][-1].values()))["url"]}
 
         Completion Message:
-        {data['completion']['success_message']}
+        {data["completion"]["success_message"]}
         """
-    
+
     @function_tool
     async def lookup_weather(self, context: RunContext, location: str):
         logger.info(f"Looking up weather for {location}")
         return "sunny with a temperature of 70 degrees."
-
-    
 
     @function_tool
     async def ask_company_knowledge(self, ctx: RunContext, question: str) -> str:
@@ -183,7 +171,7 @@ class Assistant(Agent):
             nodes = self.rag_query_engine.retrieve(question)
             retrieved_chunks = "\n---\n".join(node.text for node in nodes)
             return f"Evidence retrieved from knowledge base:\n{retrieved_chunks}"
-        except Exception as e:
+        except Exception:
             logger.exception("Error during RAG retrieval")
             return "No relevant knowledge base content found or an error occurred."
 
@@ -220,10 +208,10 @@ class Assistant(Agent):
             else:
                 logger.error(f"Failed booking: {resp.text}")
                 return f"Something went wrong: {resp.text}"
-        except Exception as e:
+        except Exception:
             logger.exception("Failed to send booking request")
             return "An unexpected error occurred when trying to book your consultation request."
-    
+
 
 server = AgentServer()
 
@@ -250,8 +238,10 @@ async def my_agent(ctx: JobContext):
         stt=inference.STT(model="assemblyai/universal-streaming", language="en"),
         # A Large Language Model (LLM) is your agent's brain, processing user input and generating a response
         # See all available models at https://docs.livekit.io/agents/models/llm/
-        #llm=inference.LLM(model="openai/gpt-4.1-mini"),
-        llm = inference.LLM(model="google/gemini-2.5-flash"),  # exact model string may vary
+        # llm=inference.LLM(model="openai/gpt-4.1-mini"),
+        llm=inference.LLM(
+            model="google/gemini-2.5-flash"
+        ),  # exact model string may vary
         # Text-to-speech (TTS) is your agent's voice, turning the LLM's text into speech that the user can hear
         # See all available models as well as voice selections at https://docs.livekit.io/agents/models/tts/
         tts=inference.TTS(

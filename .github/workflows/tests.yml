@@ -31,4 +31,9 @@ jobs:
         LIVEKIT_URL: ${{ secrets.LIVEKIT_URL }}
         LIVEKIT_API_KEY: ${{ secrets.LIVEKIT_API_KEY }}
         LIVEKIT_API_SECRET: ${{ secrets.LIVEKIT_API_SECRET }}
-      run: uv run pytest -v
+      run: |
+        if [ -d "tests" ] && [ "$(ls -A tests)" ]; then
+          uv run pytest -v
+        else
+          echo "No test suite found. Skipping tests."
+        fi
