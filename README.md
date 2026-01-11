@@ -150,4 +150,4 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## Support
 
-If you need help extending the functionality of this code or creating your own custom voice agent for your business, please contact the Proctrail team via the website proctrail.com or via email at jorge.jarne@proctrail.com. 
+If you need help extending the functionality of this code or creating your own custom voice agent for your business, please contact the Proctrail team via the website [proctrail.com](proctrail.com) or via email at jorge.jarne@proctrail.com. 
