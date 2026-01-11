@@ -1,5 +1,5 @@
-<a href="https://livekit.io/">
-  <img src="./.github/assets/logo.webp" alt="LiveKit logo" width="100" height="100">
+<a href="https://proctrail.com/">
+  <img src="./.github/assets/logo.webp" alt="LiveKit logo" width="200" height="200">
 </a>
 
 # LiveKit RAG Voice Agent Demo
@@ -38,14 +38,7 @@ It was built as an internal project at an AI automation agency to explore how RA
 * A small booking flow demonstrates outbound actions via Supabase + Resend (email)
 
 ## Architecture (high level)
-
-```
-User (phone/web) -> LiveKit Room -> STT -> Orchestrator (Agent)
-                     Agent -> Retriever (Qdrant via LlamaIndex) -> LLM -> Response
-                     Agent -> TTS -> LiveKit -> User
-                     Agent -> Supabase API -> Resend (email)
-```
-
+<img src=".github/assets/livekit-architecture.png" alt="Logo" width="1200">
 Notes:
 
 * Keep the retriever logic explicit in your code so you control costs, errors, and caching
