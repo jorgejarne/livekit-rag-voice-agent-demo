@@ -2,152 +2,169 @@
   <img src="./.github/assets/logo.webp" alt="LiveKit logo" width="100" height="100">
 </a>
 
-If you need help extending the functionality of this code or creating your own custom voice agent for your business, please contact the Proctrail team via the website [proctrail.com](proctrail.com) or via email at jorge.jarne@proctrail.com. 
-
 # LiveKit RAG Voice Agent Demo
 
-A RAG-powered voice AI assistant built with [LiveKit Agents for Python](https://github.com/livekit/agents) and [LiveKit Cloud](https://cloud.livekit.io/).
+GitHub: [https://github.com/jorgejarne/livekit-rag-voice-agent-demo](https://github.com/jorgejarne/livekit-rag-voice-agent-demo)
 
-The starter project includes:
+This repository contains a simplified, opinionated reference implementation of a real-time voice agent that combines LiveKit Agents with a Retrieval-Augmented Generation (RAG) layer.
 
-- A simple voice AI assistant, ready for extension and customization
-- A voice AI pipeline with [models](https://docs.livekit.io/agents/models) from OpenAI, Cartesia, and AssemblyAI served through LiveKit Cloud
-  - Easily integrate your preferred [LLM](https://docs.livekit.io/agents/models/llm/), [STT](https://docs.livekit.io/agents/models/stt/), and [TTS](https://docs.livekit.io/agents/models/tts/) instead, or swap to a realtime model like the [OpenAI Realtime API](https://docs.livekit.io/agents/models/realtime/openai)
-- Eval suite based on the LiveKit Agents [testing & evaluation framework](https://docs.livekit.io/agents/build/testing/)
-- [LiveKit Turn Detector](https://docs.livekit.io/agents/build/turns/turn-detector/) for contextually-aware speaker detection, with multilingual support
-- [Background voice cancellation](https://docs.livekit.io/home/cloud/noise-cancellation/)
-- Integrated [metrics and logging](https://docs.livekit.io/agents/build/metrics/)
-- A Dockerfile ready for [production deployment](https://docs.livekit.io/agents/ops/deployment/)
+It was built as an internal project at an AI automation agency to explore how RAG behaves in low-latency, voice-first scenarios. The goal is to demonstrate patterns and trade-offs for production-ready designs without exposing client secrets or full production code.
 
-This starter app is compatible with any [custom web/mobile frontend](https://docs.livekit.io/agents/start/frontend/) or [SIP-based telephony](https://docs.livekit.io/agents/start/telephony/).
+> **Medium article:** `[MEDIUM_ARTICLE_URL](https://medium.com/@jorge.jarne/lessons-from-implementing-rag-in-a-real-time-voice-agent-livekit-43f0689bf565)`
 
-## Coding agents and MCP
+## At a glance
 
-This project is designed to work with coding agents like [Cursor](https://www.cursor.com/) and [Claude Code](https://www.anthropic.com/claude-code). 
+* Purpose: demonstrate how to combine LiveKit Agents with an explicit RAG pipeline for support-style voice workflows and booking flows
+* Not a turnkey product: this repo is a sanitized demo for learning and prototyping
+* Key components: LiveKit for real-time media, Qdrant as vector DB, LlamaIndex as retriever orchestration, and an LLM for reasoning
 
-To get the most out of these tools, install the [LiveKit Docs MCP server](https://docs.livekit.io/mcp).
+## What this demo is
 
-For Cursor, use this link:
+* A reproducible reference for orchestration patterns in voice + RAG
+* A minimal demo showing how retrieval and prompt orchestration can work in real time
+* A safe, sanitized example that links reasoning to retrieval without shipping secrets
 
-[![Install MCP Server](https://cursor.com/deeplink/mcp-install-light.svg)](https://cursor.com/en-US/install-mcp?name=livekit-docs&config=eyJ1cmwiOiJodHRwczovL2RvY3MubGl2ZWtpdC5pby9tY3AifQ%3D%3D)
+## What this demo is not
 
-For Claude Code, run this command:
+* Not production-ready code
+* Not a complete customer support system
+* Not the full set of integration logic you would use in a client project
+
+## Quick highlights
+
+* LiveKit rooms manage audio, events, and agent lifecycle
+* RAG is used for dynamic knowledge that is too large for a system prompt
+* The orchestrator decides when to call the retriever and when to rely on system prompts
+* A small booking flow demonstrates outbound actions via Supabase + Resend (email)
+
+## Architecture (high level)
 
 ```
-claude mcp add --transport http livekit-docs https://docs.livekit.io/mcp
+User (phone/web) -> LiveKit Room -> STT -> Orchestrator (Agent)
+                     Agent -> Retriever (Qdrant via LlamaIndex) -> LLM -> Response
+                     Agent -> TTS -> LiveKit -> User
+                     Agent -> Supabase API -> Resend (email)
 ```
 
-For Codex CLI, use this command to install the server:
-```
-codex mcp add --url https://docs.livekit.io/mcp livekit-docs
-```
+Notes:
 
-For Gemini CLI, use this command to install the server:
-```
-gemini mcp add --transport http livekit-docs https://docs.livekit.io/mcp
-```
+* Keep the retriever logic explicit in your code so you control costs, errors, and caching
+* System prompts should encode persona, safety, and invariant behavior, not large knowledge
 
-The project includes a complete [AGENTS.md](AGENTS.md) file for these assistants. You can modify this file  your needs. To learn more about this file, see [https://agents.md](https://agents.md).
+## What to look for in this repo
 
-## Dev Setup
+* `src/` - orchestrator and demo agent code (simplified, pseudocode in places)
+* `scripts/seed_docs.py` - simple seeding utility to push demo documents into Qdrant
+* `ARCHITECTURE.md` - deeper notes on decisions, trade-offs, and deployment considerations
+* `env.example` - environment variables required to run the demo
 
-Clone the repository and install dependencies to a virtual environment:
+## Dev setup
 
-```console
-cd livekit-rag-voice-agent-demo
-uv sync
-```
-
-Sign up for [LiveKit Cloud](https://cloud.livekit.io/) then set up the environment by copying `env.example` to `.env.local` and filling in the required keys:
-
-- `LIVEKIT_URL`
-- `LIVEKIT_API_KEY`
-- `LIVEKIT_API_SECRET`
-
-This project also supports additional optional configuration (RAG, booking flow, model providers). See `env.example` for the full list.
-
-You can load the LiveKit environment automatically using the [LiveKit CLI](https://docs.livekit.io/home/cli/cli-setup):
+1. Clone the repo
 
 ```bash
-lk cloud auth
-lk app env -w -d .env.local
+git clone https://github.com/jorgejarne/livekit-rag-voice-agent-demo
+cd livekit-rag-voice-agent-demo
+```
+
+2. Create and activate a Python virtual environment, then install dependencies
+
+```bash
+python -m venv .venv
+source .venv/bin/activate   # macOS / Linux
+.\.venv\Scripts\activate  # Windows PowerShell
+pip install -r requirements.txt
+```
+
+3. Copy `env.example` to `.env.local` and fill in required keys
+
+Required env variables (examples):
+
+* LIVEKIT_URL
+* LIVEKIT_API_KEY
+* LIVEKIT_API_SECRET
+* QDRANT_URL
+* QDRANT_API_KEY
+* EMBEDDING_MODEL_NAME
+* LLM_PROVIDER_API_KEY
+* SUPABASE_URL
+* SUPABASE_SERVICE_ROLE_KEY
+* RESEND_API_KEY
+
+4. Seed demo documents into Qdrant
+
+```bash
+python scripts/seed_docs.py --source docs/company_info.docx
 ```
 
 ## Run the agent
 
-Before your first run, you must download certain models such as [Silero VAD](https://docs.livekit.io/agents/build/turns/vad/) and the [LiveKit turn detector](https://docs.livekit.io/agents/build/turns/turn-detector/):
+Download required assets for the turn detector and VAD if needed:
 
-```console
-uv run python src/agent.py download-files
+```bash
+python src/agent.py download-files
 ```
 
-Next, run this command to speak to your agent directly in your terminal:
+Run the agent in console mode to test locally:
 
-```console
-uv run python src/agent.py console
+```bash
+python src/agent.py console
 ```
 
-To run the agent for use with a frontend or telephony, use the `dev` command:
+Run the dev server for use with a frontend or telephony:
 
-```console
-uv run python src/agent.py dev
+```bash
+python src/agent.py dev
 ```
 
-In production, use the `start` command:
+Start for production-style run:
 
-```console
-uv run python src/agent.py start
+```bash
+python src/agent.py start
 ```
 
-## Frontend & Telephony
+## Implementation notes and guidelines
 
-Get started quickly with our pre-built frontend starter apps, or add telephony support:
+* Keep system prompts focused on persona, safety, conversation flow, and invariant rules
+* Use RAG for large or frequently changing knowledge only
+* Chunk by semantic topic or question-answer pairs for better retrieval results
+* Ensure embedding dimension matches Qdrant collection configuration
+* Cache retrievals for a short time window to reduce repeated vector searches for the same session
+* Add provenance when presenting retrieved facts to users to reduce hallucination risk
+* Rate limit and batch LLM calls where possible to control latency and cost
 
-| Platform | Link | Description |
-|----------|----------|-------------|
-| **Web** | [`livekit-examples/agent-starter-react`](https://github.com/livekit-examples/agent-starter-react) | Web voice AI assistant with React & Next.js |
-| **iOS/macOS** | [`livekit-examples/agent-starter-swift`](https://github.com/livekit-examples/agent-starter-swift) | Native iOS, macOS, and visionOS voice AI assistant |
-| **Flutter** | [`livekit-examples/agent-starter-flutter`](https://github.com/livekit-examples/agent-starter-flutter) | Cross-platform voice AI assistant app |
-| **React Native** | [`livekit-examples/voice-assistant-react-native`](https://github.com/livekit-examples/voice-assistant-react-native) | Native mobile app with React Native & Expo |
-| **Android** | [`livekit-examples/agent-starter-android`](https://github.com/livekit-examples/agent-starter-android) | Native Android app with Kotlin & Jetpack Compose |
-| **Web Embed** | [`livekit-examples/agent-starter-embed`](https://github.com/livekit-examples/agent-starter-embed) | Voice AI widget for any website |
-| **Telephony** | [📚 Documentation](https://docs.livekit.io/agents/start/telephony/) | Add inbound or outbound calling to your agent |
+## Common pitfalls we found
 
-For advanced customization, see the [complete frontend guide](https://docs.livekit.io/agents/start/frontend/).
+* Running heavy embedding models inside the LiveKit container caused timeouts. Use an external embedding service or separate microservice.
+* Vector dimension mismatch between the embedding model and Qdrant will break similarity search. Confirm sizes before seeding.
+* Using opaque file search features hides control and cost. Explicit RAG calls are easier to monitor and debug.
+* Collecting reliable user emails required validation and task-level enforcement. The LLM will sometimes skip asking or record incorrect addresses.
+* Calendar booking often requires a paid plan on third party services. Using Google Calendar API is a viable programmatic option.
 
-## Tests
+## Testing and evaluation
 
-This repository intentionally does not ship with a test suite.
+This demo does not include a full test suite. The LiveKit Agents testing and eval framework is compatible with this repo and can be used to create integration tests. See `AGENTS.md` for guidance.
 
-## Publishing checklist (recommended)
+## Publishing checklist
 
-Before pushing this project to a public repository:
+Before making this repo public:
 
-- **Remove secrets from the repo**: API keys, JWTs, service-account JSON files, etc.
-- **Use env vars for all credentials**: copy `env.example` → `.env.local` and keep `.env.local` untracked.
-- **Rotate any keys that were ever committed**: even if deleted, treat them as compromised.
-- **Keep tests safe by default**: integration tests should be opt-in (network + credentials required).
+* Remove secrets from the repo and ensure `.env.local` is ignored
+* Use environment variables for credentials
+* Rotate any keys that were ever committed
+* Mark integration tests as opt-in when they require network credentials
 
-## Using this template repo for your own project
+## Links and references
 
-Once you've started your own project based on this repo, you should:
-
-1. **Check in your `uv.lock`**: This file is currently untracked for the template, but you should commit it to your repository for reproducible builds and proper configuration management. (The same applies to `livekit.toml`, if you run your agents in LiveKit Cloud)
-
-2. **Remove the git tracking test**: Delete the "Check files not tracked in git" step from `.github/workflows/tests.yml` since you'll now want this file to be tracked. These are just there for development purposes in the template repo itself.
-
-3. **Add your own repository secrets**: You must [add secrets](https://docs.github.com/en/actions/how-tos/writing-workflows/choosing-what-your-workflow-does/using-secrets-in-github-actions) for `LIVEKIT_URL`, `LIVEKIT_API_KEY`, and `LIVEKIT_API_SECRET` so that the tests can run in CI.
-
-## Deploying to production
-
-This project is production-ready and includes a working `Dockerfile`. To deploy it to LiveKit Cloud or another environment, see the [deploying to production](https://docs.livekit.io/agents/ops/deployment/) guide.
-
-## Self-hosted LiveKit
-
-You can also self-host LiveKit instead of using LiveKit Cloud. See the [self-hosting](https://docs.livekit.io/home/self-hosting/) guide for more information. If you choose to self-host, you'll need to also use [model plugins](https://docs.livekit.io/agents/models/#plugins) instead of LiveKit Inference and will need to remove the [LiveKit Cloud noise cancellation](https://docs.livekit.io/home/cloud/noise-cancellation/) plugin.
+* LiveKit Agents docs: [https://docs.livekit.io/agents](https://docs.livekit.io/agents)
+* LlamaIndex: [https://gpt-index.readthedocs.io](https://gpt-index.readthedocs.io)
+* Qdrant: [https://qdrant.tech](https://qdrant.tech)
+* LiveKit Cloud: [https://cloud.livekit.io](https://cloud.livekit.io)
 
 ## License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+This project is licensed under the MIT License. See LICENSE for details.
 
+## Contact
 
+If you have questions or want a deeper walkthrough, email [jorge.jarne@proctrail.com](mailto:jorge.jarne@proctrail.com) or open an issue in this repo.
