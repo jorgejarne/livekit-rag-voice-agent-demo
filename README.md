@@ -147,3 +147,7 @@ You can also self-host LiveKit instead of using LiveKit Cloud. See the [self-hos
 ## License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+## Support
+
+If you need help extending the functionality of this code or creating your own custom voice agent for your business, please contact the Proctrail team via the website proctrail.com or via email at jorge.jarne@proctrail.com. 
