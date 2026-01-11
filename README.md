@@ -10,7 +10,7 @@ This repository contains a simplified, opinionated reference implementation of a
 
 It was built as an internal project at an AI automation agency to explore how RAG behaves in low-latency, voice-first scenarios. The goal is to demonstrate patterns and trade-offs for production-ready designs without exposing client secrets or full production code.
 
-> **Medium article:** `[MEDIUM_ARTICLE_URL](https://medium.com/@jorge.jarne/lessons-from-implementing-rag-in-a-real-time-voice-agent-livekit-43f0689bf565)`
+> **Medium article:** [Read the full story here](https://medium.com/@jorge.jarne/lessons-from-implementing-rag-in-a-real-time-voice-agent-livekit-43f0689bf565)
 
 ## At a glance
 
