@@ -2,6 +2,8 @@
   <img src="./.github/assets/logo.webp" alt="LiveKit logo" width="100" height="100">
 </a>
 
+If you need help extending the functionality of this code or creating your own custom voice agent for your business, please contact the Proctrail team via the website [proctrail.com](proctrail.com) or via email at jorge.jarne@proctrail.com. 
+
 # LiveKit RAG Voice Agent Demo
 
 A RAG-powered voice AI assistant built with [LiveKit Agents for Python](https://github.com/livekit/agents) and [LiveKit Cloud](https://cloud.livekit.io/).
@@ -148,6 +150,4 @@ You can also self-host LiveKit instead of using LiveKit Cloud. See the [self-hos
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
-## Support
 
-If you need help extending the functionality of this code or creating your own custom voice agent for your business, please contact the Proctrail team via the website [proctrail.com](proctrail.com) or via email at jorge.jarne@proctrail.com. 
